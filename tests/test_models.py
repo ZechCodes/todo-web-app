@@ -3,40 +3,30 @@ from sqlmodel import create_engine, Session, SQLModel, select
 import todo_app.models as models
 
 
-@fixture(scope="module")
+@fixture
 def db():
     engine = create_engine("sqlite:///:memory:")
     SQLModel.metadata.create_all(engine)
     return engine
 
 
-def add_user(session, *, name, **kwargs):
-    session.add(models.User(name=name, **kwargs))
-    return get_user(session, name)
+def _add_model(session, model, **kwargs):
+    session.add(obj := model(**kwargs))
+    session.commit()
+    session.refresh(obj)
+    return obj
 
 
-def get_user(session, name) -> models.User:
-    return session.exec(select(models.User).where(models.User.name == name)).first()
+def add_user(session, **kwargs):
+    return _add_model(session, models.User, **kwargs)
 
 
-def add_project(session, *, name, **kwargs):
-    session.add(models.Project(name=name, **kwargs))
-    return get_project(session, name)
+def add_project(session, **kwargs):
+    return _add_model(session, models.Project, **kwargs)
 
 
-def get_project(session, name):
-    statement = select(models.Project).where(models.Project.name == name)
-    return session.exec(statement).first()
-
-
-def add_task(session, *, name, **kwargs):
-    session.add(models.Task(name=name, **kwargs))
-    return get_task(session, name)
-
-
-def get_task(session, name):
-    statement = select(models.Task).where(models.Project.name == name)
-    return session.exec(statement).first()
+def add_task(session, **kwargs):
+    return _add_model(session, models.Task, **kwargs)
 
 
 def test_user_projects(db):
