@@ -29,11 +29,11 @@ class Project(SQLModel, table=True):
     tasks: list[Task] = Relationship()
 
     @property
-    def completed_tasks(self) -> Iterator["Task"]:
+    def completed_tasks(self) -> Iterator[Task]:
         return (task for task in self.tasks if task.status == Status.COMPLETED)
 
     @property
-    def unfinished_tasks(self) -> Iterator["Task"]:
+    def unfinished_tasks(self) -> Iterator[Task]:
         return (task for task in self.tasks if task.status == Status.NOT_COMPLETED)
 
 
