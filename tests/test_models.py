@@ -15,7 +15,7 @@ def add_user(session, *, name, **kwargs):
     return get_user(session, name)
 
 
-def get_user(session, name):
+def get_user(session, name) -> models.User:
     return session.exec(select(models.User).where(models.User.name == name)).first()
 
 
@@ -47,6 +47,35 @@ def test_user_projects(db):
         )
 
         assert len(user.projects) == 1
+        session.rollback()
+
+
+def test_user_inbox_project(db):
+    with Session(db) as session:
+        user = add_user(session, name="Bob")
+        project = add_project(
+            session,
+            name="Inbox",
+            description="Bob's inbox",
+            owner_id=user.id,
+            inbox=True,
+        )
+
+        assert user.get_inbox().id == project.id
+        session.rollback()
+
+
+def test_user_no_inbox_project(db):
+    with Session(db) as session:
+        user = add_user(session, name="Bob")
+        project = add_project(
+            session,
+            name="Inbox",
+            description="Bob's inbox",
+            owner_id=user.id,
+        )
+
+        assert user.get_inbox().id == project.id
         session.rollback()
 
 

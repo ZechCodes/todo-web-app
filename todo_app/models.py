@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Iterator
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import SQLModel, Field, Relationship, Session, select
 from todo_app.status import Status
 
 
@@ -10,7 +10,7 @@ class Task(SQLModel, table=True):
     description: str
     author_id: int = Field(foreign_key="user.id")
     project_id: int = Field(foreign_key="project.id")
-    status: str = Field(default=Status.NOT_COMPLETED)
+    status: str = Status.NOT_COMPLETED
     created: datetime = Field(default_factory=datetime.utcnow)
     completed: datetime = Field(default_factory=datetime.utcnow)
 
@@ -23,7 +23,8 @@ class Project(SQLModel, table=True):
     name: str
     description: str
     owner_id: int = Field(foreign_key="user.id")
-    archived: bool = Field(default=False)
+    archived: bool = False
+    inbox: bool = False
 
     owner: "User" = Relationship()
     tasks: list[Task] = Relationship()
@@ -52,3 +53,14 @@ class User(SQLModel, table=True):
     @property
     def active_projects(self) -> Iterator[Project]:
         return (proj for proj in self.projects if not proj.archived)
+
+    def get_inbox(self) -> Project | None:
+        return (
+            Session.object_session(self)
+            .exec(
+                select(Project).where(
+                    Project.inbox == True, Project.owner_id == self.id
+                )
+            )
+            .first()
+        ) or self.projects[0]
