@@ -54,13 +54,16 @@ class User(SQLModel, table=True):
     def active_projects(self) -> Iterator[Project]:
         return (proj for proj in self.projects if not proj.archived)
 
-    def get_inbox(self) -> Project | None:
-        return (
-            Session.object_session(self)
-            .exec(
-                select(Project).where(
-                    Project.inbox == True, Project.owner_id == self.id
-                )
-            )
-            .first()
-        ) or self.projects[0]
+    @property
+    def inbox(self) -> Project:
+        session = Session.object_session(self)
+        query = select(Project).where(Project.inbox, Project.owner_id == self.id)
+        if project := session.exec(query).first():
+            return project
+
+        if self.projects:
+            return self.projects[0]
+
+        raise ValueError(
+            f"{self!r} doesn't have any projects. Could not find an inbox."
+        )

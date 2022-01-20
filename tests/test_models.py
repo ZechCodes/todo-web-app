@@ -1,4 +1,4 @@
-from pytest import fixture
+from pytest import fixture, raises
 from sqlmodel import create_engine, Session, SQLModel, select
 import todo_app.models as models
 
@@ -61,7 +61,7 @@ def test_user_inbox_project(db):
             inbox=True,
         )
 
-        assert user.get_inbox().id == project.id
+        assert user.inbox.id == project.id
         session.rollback()
 
 
@@ -75,7 +75,17 @@ def test_user_no_inbox_project(db):
             owner_id=user.id,
         )
 
-        assert user.get_inbox().id == project.id
+        assert user.inbox.id == project.id
+        session.rollback()
+
+
+def test_user_inbox_no_projects(db):
+    with Session(db) as session:
+        user = add_user(session, name="Bob")
+
+        with raises(ValueError):
+            user.inbox
+
         session.rollback()
 
 
