@@ -1,3 +1,4 @@
+from __future__ import annotations
 from datetime import datetime
 from typing import Iterator
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,8 +16,8 @@ class Task(SQLModel, table=True):
     created: datetime = Field(default_factory=datetime.utcnow)
     completed: datetime = Field(default_factory=datetime.utcnow)
 
-    author: "User" = Relationship()
-    project: "Project" = Relationship()
+    author: User = Relationship()
+    project: Project = Relationship()
 
 
 class Project(SQLModel, table=True):
@@ -27,7 +28,7 @@ class Project(SQLModel, table=True):
     archived: bool = False
     inbox: bool = False
 
-    owner: "User" = Relationship()
+    owner: User = Relationship()
 
     async def get_tasks(self, session: AsyncSession) -> list[Task]:
         query = select(Task).where(Task.project_id == self.id)
