@@ -121,59 +121,55 @@ async def test_project_owner(session):
 
 
 @mark.asyncio
-async def test_project_tasks(db):
-    async with AsyncSession(db) as session:
-        user = await add_user(session, name="Bob")
-        project = await add_project(
-            session, name="Test", description="Test project", owner_id=user.id
-        )
-        await add_task(
-            session,
-            name="Test",
-            description="Test task",
-            author_id=user.id,
-            project_id=project.id,
-        )
+async def test_project_tasks(session):
+    user = await add_user(session, name="Bob")
+    project = await add_project(
+        session, name="Test", description="Test project", owner_id=user.id
+    )
+    await add_task(
+        session,
+        name="Test",
+        description="Test task",
+        author_id=user.id,
+        project_id=project.id,
+    )
 
-        assert len(project.tasks) == 1
-
-
-@mark.asyncio
-async def test_task_author(db):
-    async with AsyncSession(db) as session:
-        user = await add_user(session, name="Bob")
-        project = await add_project(
-            session, name="Test", description="Test project", owner_id=user.id
-        )
-        task = await add_task(
-            session,
-            name="Test",
-            description="Test task",
-            author_id=user.id,
-            project_id=project.id,
-        )
-
-        assert task.author.id is not None
-        assert task.author.id == user.id
+    tasks = await project.get_tasks(session)
+    assert len(tasks) == 1
 
 
 @mark.asyncio
-async def test_task_project(db):
-    async with AsyncSession(db) as session:
-        user = await add_user(session, name="Bob")
-        project = await add_project(
-            session, name="Test", description="Test project", owner_id=user.id
-        )
-        task = await add_task(
-            session,
-            name="Test",
-            description="Test task",
-            author_id=user.id,
-            project_id=project.id,
-        )
+async def test_task_author(session):
+    user = await add_user(session, name="Bob")
+    project = await add_project(
+        session, name="Test", description="Test project", owner_id=user.id
+    )
+    task = await add_task(
+        session,
+        name="Test",
+        description="Test task",
+        author_id=user.id,
+        project_id=project.id,
+    )
 
-        task_project_id = int(task.projects.id)
-        project_id = int(project.id)
+    assert task.author.id is not None
+    assert task.author.id == user.id
 
-        assert task_project_id is not None
-        assert task_project_id == project_nid
+
+@mark.asyncio
+async def test_task_project(session):
+    user = await add_user(session, name="Bob")
+    project = await add_project(
+        session, name="Test", description="Test project", owner_id=user.id
+    )
+    task = await add_task(
+        session,
+        name="Test",
+        description="Test task",
+        author_id=user.id,
+        project_id=project.id,
+    )
+
+    task_project = task.project
+    assert task_project
+    assert task_project.id == project.id
