@@ -1,6 +1,6 @@
 from pytest import raises, mark
 from pytest_asyncio import fixture as async_fixture
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel
 from typing import Type, TypeVar
@@ -13,7 +13,7 @@ T = TypeVar("T")
 @async_fixture
 async def session():
     engine = create_async_engine("sqlite+aiosqlite:///:memory:", future=True)
-    async_session = sessionmaker(engine, class_=models.Session, expire_on_commit=False)
+    async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     async with engine.begin() as connection:
         await connection.run_sync(SQLModel.metadata.create_all)
 
