@@ -111,15 +111,14 @@ async def test_user_inbox_no_projects(session):
 
 
 @mark.asyncio
-async def test_project_owner(db):
-    async with AsyncSession(db) as session:
-        user = await add_user(session, name="Bob")
-        project = await add_project(
-            session, name="Test", description="Test project", owner_id=user.id
-        )
+async def test_project_owner(session):
+    user = await add_user(session, name="Bob")
+    project = await add_project(
+        session, name="Test", description="Test project", owner_id=user.id
+    )
 
-        assert project.owner.id is not None
-        assert project.owner.id == user.id
+    assert project.owner.id is not None
+    assert project.owner.id == user.id
 
 
 @mark.asyncio
