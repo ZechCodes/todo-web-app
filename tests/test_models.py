@@ -53,7 +53,6 @@ async def test_user_projects(session):
 
     projects = await user.get_projects(session)
     assert len(projects) == 1
-    print(projects)
     assert isinstance(projects[0], models.Project)
 
 
