@@ -76,41 +76,38 @@ async def test_user_multiple_projects(session):
 
 
 @mark.asyncio
-async def test_user_inbox_project(db):
-    async with AsyncSession(db) as session:
-        user = await add_user(session, name="Bob")
-        project = await add_project(
-            session,
-            name="Inbox",
-            description="Bob's inbox",
-            owner_id=user.id,
-            inbox=True,
-        )
+async def test_user_inbox_project(session):
+    user = await add_user(session, name="Bob")
+    project = await add_project(
+        session,
+        name="Inbox",
+        description="Bob's inbox",
+        owner_id=user.id,
+        inbox=True,
+    )
 
-        assert user.inbox.id == project.id
-
-
-@mark.asyncio
-async def test_user_no_inbox_project(db):
-    async with AsyncSession(db) as session:
-        user = await add_user(session, name="Bob")
-        project = await add_project(
-            session,
-            name="Inbox",
-            description="Bob's inbox",
-            owner_id=user.id,
-        )
-
-        assert user.inbox.id == project.id
+    assert (await user.get_inbox(session)).id == project.id
 
 
 @mark.asyncio
-async def test_user_inbox_no_projects(db):
-    async with AsyncSession(db) as session:
-        user = await add_user(session, name="Bob")
+async def test_user_no_inbox_project(session):
+    user = await add_user(session, name="Bob")
+    project = await add_project(
+        session,
+        name="Inbox",
+        description="Bob's inbox",
+        owner_id=user.id,
+    )
 
-        with raises(ValueError):
-            user.inbox
+    assert (await user.get_inbox(session)).id == project.id
+
+
+@mark.asyncio
+async def test_user_inbox_no_projects(session):
+    user = await add_user(session, name="Bob")
+
+    with raises(ValueError):
+        await user.get_inbox(session)
 
 
 @mark.asyncio

@@ -116,11 +116,11 @@ class User(SQLModel, table=True):
 
     async def get_inbox(self, session: Session) -> Project:
         query = select(Project).where(Project.inbox, Project.owner_id == self.id)
-        if project := await (await session.exec(query)).first():
+        if project := (await session.exec(query)).first():
             return project
 
-        if self.projects:
-            return (await self.get_projects(session))[0]
+        if projects := await self.get_projects(session):
+            return projects[0]
 
         raise ValueError(
             f"{self!r} doesn't have any projects. Could not find an inbox."
