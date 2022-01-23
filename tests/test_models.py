@@ -9,20 +9,22 @@ import todo_app.models as models
 
 T = TypeVar("T")
 
+engine = create_async_engine("sqlite+aiosqlite:///:memory:", future=True)
+async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
 
 @async_fixture
-async def session():
-    engine = create_async_engine("sqlite+aiosqlite:///:memory:", future=True)
-    async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+async def connection():
     async with engine.begin() as connection:
         await connection.run_sync(SQLModel.metadata.create_all)
-
-        async with async_session() as s:
-            yield s
-
+        yield connection
         await connection.close()
 
-    await engine.dispose()
+
+@async_fixture
+async def session(connection):
+    async with async_session() as sess:
+        yield sess
 
 
 async def _add_model(session, model: Type[T], **kwargs) -> T:
