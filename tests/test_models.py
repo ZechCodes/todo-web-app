@@ -1,33 +1,32 @@
-from pytest import raises, mark
+from pytest import fixture, mark, raises
 from pytest_asyncio import fixture as async_fixture
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel
-from typing import Type, TypeVar
 import todo_app.models as models
 
 
-T = TypeVar("T")
-
-engine = create_async_engine("sqlite+aiosqlite:///:memory:", future=True)
-async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-
-
 @async_fixture
-async def connection():
+async def engine():
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:", future=True)
     async with engine.begin() as connection:
         await connection.run_sync(SQLModel.metadata.create_all)
-        yield connection
-        await connection.close()
+
+    return engine
+
+
+@fixture
+def session_factory(engine):
+    return sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
 @async_fixture
-async def session(connection):
-    async with async_session() as sess:
+async def session(session_factory):
+    async with session_factory() as sess:
         yield sess
 
 
-async def _add_model(session, model: Type[T], **kwargs) -> T:
+async def _add_model(session, model, **kwargs):
     session.add(obj := model(**kwargs))
     await session.commit()
     await session.refresh(obj)
