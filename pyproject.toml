@@ -9,9 +9,11 @@ license = "MIT"
 python = "^3.10"
 fastapi = "^0.71.0"
 sqlmodel = "^0.0.6"
+aiosqlite = "^0.17.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
+pytest-asyncio = "^0.17.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
